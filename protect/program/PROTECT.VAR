@@ -1,0 +1,104 @@
+
+CC5X Version 3.0G, Copyright (c) B. Knudsen Data.
+* VARIABLE LIST FILE
+Source 'D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C'
+Chip = 16C711
+
+=== Sorted by address ===
+
+   [-] 0x000   :  0:  INDF
+   [0] 0x001   :  0:  TMR0
+   [-] 0x002   :  1:  PCL
+   [-] 0x003   :  2:  STATUS
+   [-] 0x003.0 : 25:  Carry
+   [-] 0x003.1 :  0:  DC
+   [-] 0x003.2 :  0:  Zero_
+   [-] 0x003.3 :  0:  PD
+   [-] 0x003.4 :  0:  TO
+   [-] 0x003.5 : 22:  RP0
+   [-] 0x003.6 :  0:  RP1
+   [-] 0x003.7 :  0:  IRP
+   [-] 0x004   :  0:  FSR
+   [0] 0x005   :  0:  PORTA
+ P [0] 0x005.4 :  2:  protect
+   [0] 0x006   :  0:  PORTB
+ P [0] 0x006.0 :  2:  TX
+ P [0] 0x006.1 :  2:  SCK
+ P [0] 0x006.2 :  5:  RC
+ P [0] 0x006.3 :  3:  GC
+ P [0] 0x006.4 :  5:  RB
+ P [0] 0x006.5 :  3:  GB
+ P [0] 0x006.6 :  5:  RA
+ P [0] 0x006.7 :  3:  GA
+ P [0] 0x008   :  1:  ADCON0
+ P [0] 0x008.0 :  0:  ADON
+ P [0] 0x008.1 :  0:  ADIF
+ P [0] 0x008.2 :  2:  GO
+ P [0] 0x008.3 :  0:  CHS0
+ P [0] 0x008.4 :  0:  CHS1
+ P [0] 0x008.6 :  0:  ADCS0
+ P [0] 0x008.7 :  0:  ADCS1
+ P [-] 0x009   :  1:  ADRES
+   [-] 0x00A   :  0:  PCLATH
+   [-] 0x00A.3 :  0:  PA0
+   [-] 0x00A.4 :  0:  PA1
+   [-] 0x00B   :  1:  INTCON
+   [-] 0x00B.0 :  0:  RBIF
+   [-] 0x00B.1 :  0:  INTF
+   [-] 0x00B.2 :  1:  T0IF
+   [-] 0x00B.3 :  0:  RBIE
+   [-] 0x00B.4 :  0:  INTE
+   [-] 0x00B.5 :  0:  T0IE
+ P [-] 0x00B.6 :  0:  ADIE
+   [-] 0x00B.7 :  0:  GIE
+ L [-] 0x00C   :  3:  s1
+ L [-] 0x00D   :  2:  s2
+ L [-] 0x00E   :  9:  i_4
+ L [-] 0x00F   :  6:  tmp
+ L [-] 0x011   :  9:  i_2
+ L [-] 0x011   :  2:  ch
+ L [-] 0x011   :  2:  C11cnt
+ L [-] 0x012   :  4:  C12tmp
+ L [-] 0x012   :  5:  sum
+ L [-] 0x012   :  2:  i1
+ L [-] 0x013   :  2:  i2
+ L [-] 0x014   :  2:  i3
+ L [-] 0x014   :  4:  C13rem
+ L [-] 0x014   :  2:  i_3
+ L [-] 0x015   :  2:  C6cnt
+ L [-] 0x015   :  2:  cc
+ L [-] 0x015   :  2:  C9cnt
+ L [-] 0x015   :  2:  C1cnt
+ L [-] 0x015   :  2:  C4cnt
+ L [-] 0x016   :  3:  i
+ L [-] 0x016   :  2:  C7tmp
+ L [-] 0x016   :  2:  C10tmp
+ L [-] 0x016   :  2:  C5tmp
+ L [-] 0x016   :  2:  C2tmp
+ L [-] 0x017   :  4:  C8rem
+ L [-] 0x017   :  4:  C3rem
+ G [-] 0x018   : 14:  voltage
+ G [-] 0x019   :  6:  Atime
+ G [-] 0x01A   :  6:  Btime
+ G [-] 0x01B   :  6:  Ctime
+ G [-] 0x01C.0 :  5:  intflag
+ G [-] 0x01C.1 :  5:  pra
+ G [-] 0x01C.2 :  5:  prb
+ G [-] 0x01C.3 :  5:  prc
+   [1] 0x081   :  1:  OPTION
+   [1] 0x081.0 :  0:  PS0
+   [1] 0x081.1 :  0:  PS1
+   [1] 0x081.2 :  0:  PS2
+   [1] 0x081.3 :  0:  PSA
+   [1] 0x081.4 :  0:  T0SE
+   [1] 0x081.5 :  0:  T0CS
+   [1] 0x081.6 :  0:  INTEDG
+   [1] 0x081.7 :  0:  RBPU_
+   [1] 0x085   :  1:  TRISA
+   [1] 0x086   :  4:  TRISB
+ P [1] 0x087   :  0:  PCON
+ P [1] 0x087.0 :  0:  BOR_
+ P [1] 0x087.1 :  0:  POR_
+ P [1] 0x088   :  1:  ADCON1
+ P [1] 0x088.0 :  0:  PCFG0
+ P [1] 0x088.1 :  0:  PCFG1

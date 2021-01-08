@@ -1,0 +1,781 @@
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 1
+
+ADDR CODE  LINE SOURCE
+
+           0001 
+           0002 ; CC5X Version 3.0G, Copyright (c) B. Knudsen Data
+           0003 ; C compiler for the PICmicro family
+           0004 ; ************  17. Nov 2000   1:09  *************
+           0005 
+           0006 	processor  16C711
+           0007 	radix  DEC
+           0008 
+     0081  0009 OPTION_REG  EQU   0x81
+     0002  0010 PCL         EQU   0x02
+     0003  0011 STATUS      EQU   0x03
+     0085  0012 TRISA       EQU   0x85
+     0086  0013 TRISB       EQU   0x86
+     000B  0014 INTCON      EQU   0x0B
+     0000  0015 Carry       EQU   0
+     0005  0016 RP0         EQU   5
+     0002  0017 T0IF        EQU   2
+     0008  0018 ADCON0      EQU   0x08
+     0009  0019 ADRES       EQU   0x09
+     0088  0020 ADCON1      EQU   0x88
+     0002  0021 GO          EQU   2
+     0018  0022 voltage     EQU   0x18
+     0019  0023 Atime       EQU   0x19
+     001A  0024 Btime       EQU   0x1A
+     001B  0025 Ctime       EQU   0x1B
+     0000  0026 intflag     EQU   0
+     0001  0027 pra         EQU   1
+     0002  0028 prb         EQU   2
+     0003  0029 prc         EQU   3
+     0004  0030 protect     EQU   4
+     0000  0031 TX          EQU   0
+     0001  0032 SCK         EQU   1
+     0006  0033 RA          EQU   6
+     0007  0034 GA          EQU   7
+     0004  0035 RB          EQU   4
+     0005  0036 GB          EQU   5
+     0002  0037 RC          EQU   2
+     0003  0038 GC          EQU   3
+     000C  0039 s1          EQU   0x0C
+     000D  0040 s2          EQU   0x0D
+     0015  0041 cc          EQU   0x15
+     0016  0042 i           EQU   0x16
+     0011  0043 i_2         EQU   0x11
+     0012  0044 i1          EQU   0x12
+     0013  0045 i2          EQU   0x13
+     0014  0046 i3          EQU   0x14
+     0015  0047 C1cnt       EQU   0x15
+     0016  0048 C2tmp       EQU   0x16
+     0017  0049 C3rem       EQU   0x17
+     0015  0050 C4cnt       EQU   0x15
+     0016  0051 C5tmp       EQU   0x16
+     0015  0052 C6cnt       EQU   0x15
+     0016  0053 C7tmp       EQU   0x16
+     0017  0054 C8rem       EQU   0x17
+     0015  0055 C9cnt       EQU   0x15
+     0016  0056 C10tmp      EQU   0x16
+     0011  0057 ch          EQU   0x11
+     0012  0058 sum         EQU   0x12
+     0014  0059 i_3         EQU   0x14
+     000E  0060 i_4         EQU   0x0E
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 2
+
+ADDR CODE  LINE SOURCE
+
+     000F  0061 tmp         EQU   0x0F
+     0011  0062 C11cnt      EQU   0x11
+     0012  0063 C12tmp      EQU   0x12
+     0014  0064 C13rem      EQU   0x14
+           0065 
+0000 28A3  0066 	GOTO main
+           0067 
+           0068   ; FILE D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C
+           0069 			;/********************************/
+           0070 			;/*	SolarVoltage power	*/
+           0071 			;/*	limit load suite	*/
+           0072 			;/*	program by:fengjiantao	*/
+           0073 			;/*	2000.4.14		*/
+           0074 			;/*	filename:protect.c	*/
+           0075 			;/********************************/
+           0076 			;#include "16C711.H"
+           0077 			;#include "int16cxx.h"
+           0078 			;
+           0079 			;#define MAX 250
+           0080 			;#define MIN 190
+           0081 			;#define settime 100
+           0082 			;#define AMAX	1
+           0083 			;#define	AMIN	2
+           0084 			;#define	BMAX	3
+           0085 			;#define BMIN	4
+           0086 			;#define CMAX	5
+           0087 			;#define CMIN	6
+           0088 			;
+           0089 			;char voltage;
+           0090 			;char Atime,Btime,Ctime;
+           0091 			;bit intflag,pra,prb,prc;
+           0092 			;
+           0093 			;#pragma bit protect @ 5.4
+           0094 			;#pragma bit TX @ 6.0
+           0095 			;#pragma bit SCK @ 6.1
+           0096 			;#pragma bit RA	@ 6.6
+           0097 			;#pragma bit GA  @ 6.7
+           0098 			;#pragma bit RB	@ 6.4
+           0099 			;#pragma bit GB 	@ 6.5
+           0100 			;#pragma bit RC	@ 6.2
+           0101 			;#pragma bit GC	@ 6.3
+           0102 			;
+           0103 			;#pragma origin = 0x4
+     0000  0104 	ORG 0x0004
+           0105 			;
+           0106 			;interrupt int_server( void)
+           0107 			;{
+           0108 int_server
+           0109 			;    	int_save_registers    // W, STATUS (and PCLATH)
+0004 008C  0110 	MOVWF s1
+0005 0E03  0111 	SWAPF STATUS,W
+0006 008D  0112 	MOVWF s2
+           0113 			;    	T0IF=0;
+0007 110B  0114 	BCF   0x0B,T0IF
+           0115 			;		intflag=1;
+0008 141C  0116 	BSF   0x1C,intflag
+           0117 			;    	int_restore_registers // W, STATUS (and PCLATH)
+0009 0E0D  0118 	SWAPF s2,W
+000A 0083  0119 	MOVWF STATUS
+000B 0E8C  0120 	SWAPF s1,1
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 3
+
+ADDR CODE  LINE SOURCE
+
+000C 0E0C  0121 	SWAPF s1,W
+           0122 			;}
+000D 0009  0123 	RETFIE
+           0124 			;
+           0125 			;
+           0126 			;char table(char W)
+           0127 			;{
+           0128 table
+           0129 			;//	if(W>=10)return 0;
+           0130 			;	#pragma computedgoto 1
+           0131 			;	PCL+=W;
+000E 0782  0132 	ADDWF PCL,1
+           0133 			;	return 0xfc;
+000F 34FC  0134 	RETLW .252
+           0135 			;	return 0xc;
+0010 340C  0136 	RETLW .12
+           0137 			;	return 0xd9;
+0011 34D9  0138 	RETLW .217
+           0139 			;	return 0x9d;
+0012 349D  0140 	RETLW .157
+           0141 			;	return 0x2d;
+0013 342D  0142 	RETLW .45
+           0143 			;	return 0xb5;
+0014 34B5  0144 	RETLW .181
+           0145 			;	return 0xf5;
+0015 34F5  0146 	RETLW .245
+           0147 			;	return 0x1c;
+0016 341C  0148 	RETLW .28
+           0149 			;	return 0xfd;
+0017 34FD  0150 	RETLW .253
+           0151 			;	return 0xbd;
+0018 34BD  0152 	RETLW .189
+           0153 			;	#pragma computedgoto 0
+           0154 			;}
+           0155 			;
+           0156 			;void outchar(char cc)
+           0157 			;{
+           0158 outchar
+0019 0095  0159 	MOVWF cc
+           0160 			;	unsigned char i;
+           0161 			;	for(i=0;i<8;i++){
+001A 0196  0162 	CLRF  i
+001B 3008  0163 m001	MOVLW .8
+001C 0216  0164 	SUBWF i,W
+001D 1803  0165 	BTFSC 0x03,Carry
+001E 282C  0166 	GOTO  m004
+           0167 			;		#asm
+           0168 			;		rrf cc,f;
+001F 0C95  0169 	RRF   cc,1
+           0170 			;		#endasm
+           0171 			;		if(Carry)TX=1;
+0020 1C03  0172 	BTFSS 0x03,Carry
+0021 2825  0173 	GOTO  m002
+0022 1283  0174 	BCF   0x03,RP0
+0023 1406  0175 	BSF   0x06,TX
+           0176 			;		else TX=0;
+0024 2827  0177 	GOTO  m003
+0025 1283  0178 m002	BCF   0x03,RP0
+0026 1006  0179 	BCF   0x06,TX
+           0180 			;		SCK=1;
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 4
+
+ADDR CODE  LINE SOURCE
+
+0027 1283  0181 m003	BCF   0x03,RP0
+0028 1486  0182 	BSF   0x06,SCK
+           0183 			;		SCK=0;
+0029 1086  0184 	BCF   0x06,SCK
+           0185 			;	}
+002A 0A96  0186 	INCF  i,1
+002B 281B  0187 	GOTO  m001
+           0188 			;}
+002C 0008  0189 m004	RETURN
+           0190 			;
+           0191 			;
+           0192 			;	
+           0193 			;	
+           0194 			;void display()
+           0195 			;{
+           0196 display
+           0197 			;	char i,i1,i2,i3;
+           0198 			;	i=voltage/100;
+002D 0818  0199 	MOVF  voltage,W
+002E 0096  0200 	MOVWF C2tmp
+002F 0197  0201 	CLRF  C3rem
+0030 3008  0202 	MOVLW .8
+0031 0095  0203 	MOVWF C1cnt
+0032 0D96  0204 m005	RLF   C2tmp,1
+0033 0D97  0205 	RLF   C3rem,1
+0034 3064  0206 	MOVLW .100
+0035 0217  0207 	SUBWF C3rem,W
+0036 1C03  0208 	BTFSS 0x03,Carry
+0037 283B  0209 	GOTO  m006
+0038 3064  0210 	MOVLW .100
+0039 0297  0211 	SUBWF C3rem,1
+003A 1403  0212 	BSF   0x03,Carry
+003B 0D91  0213 m006	RLF   i_2,1
+003C 0B95  0214 	DECFSZ C1cnt,1
+003D 2832  0215 	GOTO  m005
+           0216 			;	i1=table(i);
+003E 0811  0217 	MOVF  i_2,W
+003F 200E  0218 	CALL  table
+0040 0092  0219 	MOVWF i1
+           0220 			;	voltage%=100;
+0041 0818  0221 	MOVF  voltage,W
+0042 0096  0222 	MOVWF C5tmp
+0043 0198  0223 	CLRF  voltage
+0044 3008  0224 	MOVLW .8
+0045 0095  0225 	MOVWF C4cnt
+0046 0D96  0226 m007	RLF   C5tmp,1
+0047 0D98  0227 	RLF   voltage,1
+0048 3064  0228 	MOVLW .100
+0049 0218  0229 	SUBWF voltage,W
+004A 1C03  0230 	BTFSS 0x03,Carry
+004B 284E  0231 	GOTO  m008
+004C 3064  0232 	MOVLW .100
+004D 0298  0233 	SUBWF voltage,1
+004E 0B95  0234 m008	DECFSZ C4cnt,1
+004F 2846  0235 	GOTO  m007
+           0236 			;	i=voltage/10;
+0050 0818  0237 	MOVF  voltage,W
+0051 0096  0238 	MOVWF C7tmp
+0052 0197  0239 	CLRF  C8rem
+0053 3008  0240 	MOVLW .8
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 5
+
+ADDR CODE  LINE SOURCE
+
+0054 0095  0241 	MOVWF C6cnt
+0055 0D96  0242 m009	RLF   C7tmp,1
+0056 0D97  0243 	RLF   C8rem,1
+0057 300A  0244 	MOVLW .10
+0058 0217  0245 	SUBWF C8rem,W
+0059 1C03  0246 	BTFSS 0x03,Carry
+005A 285E  0247 	GOTO  m010
+005B 300A  0248 	MOVLW .10
+005C 0297  0249 	SUBWF C8rem,1
+005D 1403  0250 	BSF   0x03,Carry
+005E 0D91  0251 m010	RLF   i_2,1
+005F 0B95  0252 	DECFSZ C6cnt,1
+0060 2855  0253 	GOTO  m009
+           0254 			;	i2=table(i);
+0061 0811  0255 	MOVF  i_2,W
+0062 200E  0256 	CALL  table
+0063 0093  0257 	MOVWF i2
+           0258 			;	i=voltage%10;
+0064 0818  0259 	MOVF  voltage,W
+0065 0096  0260 	MOVWF C10tmp
+0066 0191  0261 	CLRF  i_2
+0067 3008  0262 	MOVLW .8
+0068 0095  0263 	MOVWF C9cnt
+0069 0D96  0264 m011	RLF   C10tmp,1
+006A 0D91  0265 	RLF   i_2,1
+006B 300A  0266 	MOVLW .10
+006C 0211  0267 	SUBWF i_2,W
+006D 1C03  0268 	BTFSS 0x03,Carry
+006E 2871  0269 	GOTO  m012
+006F 300A  0270 	MOVLW .10
+0070 0291  0271 	SUBWF i_2,1
+0071 0B95  0272 m012	DECFSZ C9cnt,1
+0072 2869  0273 	GOTO  m011
+           0274 			;	i3=table(i);
+0073 0811  0275 	MOVF  i_2,W
+0074 200E  0276 	CALL  table
+0075 0094  0277 	MOVWF i3
+           0278 			;	outchar(i3);
+0076 0814  0279 	MOVF  i3,W
+0077 2019  0280 	CALL  outchar
+           0281 			;	outchar(i2);
+0078 0813  0282 	MOVF  i2,W
+0079 2019  0283 	CALL  outchar
+           0284 			;	outchar(i1);
+007A 0812  0285 	MOVF  i1,W
+007B 2819  0286 	GOTO  outchar
+           0287 			;}
+           0288 			;
+           0289 			;	
+           0290 			;char adc(char ch)
+           0291 			;{
+           0292 adc
+007C 0091  0293 	MOVWF ch
+           0294 			;	union{
+           0295 			;		unsigned long s16;
+           0296 			;		char s8[2];
+           0297 			;	}sum;
+           0298 			;	char i;
+           0299 			;	sum.s16=0;
+007D 0192  0300 	CLRF  sum
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 6
+
+ADDR CODE  LINE SOURCE
+
+007E 0193  0301 	CLRF  sum+1
+           0302 			;	ADCON0=ch;
+007F 0811  0303 	MOVF  ch,W
+0080 1283  0304 	BCF   0x03,RP0
+0081 0088  0305 	MOVWF ADCON0
+           0306 			;	clrwdt();
+0082 0064  0307 	CLRWDT
+           0308 			;	clrwdt();
+0083 0064  0309 	CLRWDT
+           0310 			;	clrwdt();
+0084 0064  0311 	CLRWDT
+           0312 			;	clrwdt();
+0085 0064  0313 	CLRWDT
+           0314 			;	i=0;
+0086 0194  0315 	CLRF  i_3
+           0316 			;	do{
+           0317 			;		clrwdt();
+0087 0064  0318 m013	CLRWDT
+           0319 			;		clrwdt();
+0088 0064  0320 	CLRWDT
+           0321 			;		clrwdt();
+0089 0064  0322 	CLRWDT
+           0323 			;		clrwdt();
+008A 0064  0324 	CLRWDT
+           0325 			;		GO=1;
+008B 1283  0326 	BCF   0x03,RP0
+008C 1508  0327 	BSF   0x08,GO
+           0328 			;		while(GO);
+008D 1283  0329 m014	BCF   0x03,RP0
+008E 1908  0330 	BTFSC 0x08,GO
+008F 288D  0331 	GOTO  m014
+           0332 			;		sum.s16+=ADRES;
+0090 0809  0333 	MOVF  ADRES,W
+0091 0792  0334 	ADDWF sum,1
+0092 1803  0335 	BTFSC 0x03,Carry
+0093 0A93  0336 	INCF  sum+1,1
+           0337 			;		i++;
+0094 0F94  0338 	INCFSZ i_3,1
+           0339 			;	}while(i!=0);
+0095 2887  0340 	GOTO  m013
+           0341 			;	return sum.s8[1];
+0096 0813  0342 	MOVF  sum+1,W
+0097 0008  0343 	RETURN
+           0344 			;}
+           0345 			;
+           0346 			;void wait(void)
+           0347 			;{
+           0348 wait
+           0349 			;	while(!intflag)clrwdt();
+0098 181C  0350 m015	BTFSC 0x1C,intflag
+0099 289C  0351 	GOTO  m016
+009A 0064  0352 	CLRWDT
+009B 2898  0353 	GOTO  m015
+           0354 			;	intflag=0;
+009C 101C  0355 m016	BCF   0x1C,intflag
+           0356 			;	while(!intflag)clrwdt();
+009D 181C  0357 m017	BTFSC 0x1C,intflag
+009E 28A1  0358 	GOTO  m018
+009F 0064  0359 	CLRWDT
+00A0 289D  0360 	GOTO  m017
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 7
+
+ADDR CODE  LINE SOURCE
+
+           0361 			;	intflag=0;
+00A1 101C  0362 m018	BCF   0x1C,intflag
+           0363 			;}
+00A2 0008  0364 	RETURN
+           0365 			;	
+           0366 			;void main(void)
+           0367 			;{
+           0368 main
+           0369 			;	char i;
+           0370 			;	unsigned long tmp;
+           0371 			;	ADCON1=0;
+00A3 1683  0372 	BSF   0x03,RP0
+00A4 0188  0373 	CLRF  ADCON1
+           0374 			;	TRISA=0x1f;
+00A5 301F  0375 	MOVLW .31
+00A6 0085  0376 	MOVWF TRISA
+           0377 			;	OPTION=0x87;
+00A7 3087  0378 	MOVLW .135
+00A8 0081  0379 	MOVWF OPTION_REG
+           0380 			;	INTCON=0b10100000;
+00A9 30A0  0381 	MOVLW .160
+00AA 008B  0382 	MOVWF INTCON
+           0383 			;	if(RA){
+00AB 1283  0384 	BCF   0x03,RP0
+00AC 1F06  0385 	BTFSS 0x06,RA
+00AD 28BB  0386 	GOTO  m020
+           0387 			;		wait();
+00AE 2098  0388 	CALL  wait
+           0389 			;		wait();
+00AF 2098  0390 	CALL  wait
+           0391 			;		if(RA){
+00B0 1F06  0392 	BTFSS 0x06,RA
+00B1 28BB  0393 	GOTO  m020
+           0394 			;			TRISB=0b11111100;
+00B2 30FC  0395 	MOVLW .252
+00B3 1683  0396 	BSF   0x03,RP0
+00B4 0086  0397 	MOVWF TRISB
+           0398 			;			while(1){
+           0399 			;				voltage=adc(0x89);
+00B5 3089  0400 m019	MOVLW .137
+00B6 207C  0401 	CALL  adc
+00B7 0098  0402 	MOVWF voltage
+           0403 			;				display();
+00B8 202D  0404 	CALL  display
+           0405 			;				wait();
+00B9 2098  0406 	CALL  wait
+           0407 			;			}
+00BA 28B5  0408 	GOTO  m019
+           0409 			;		}
+           0410 			;	}
+           0411 			;	if(RB){
+00BB 1283  0412 m020	BCF   0x03,RP0
+00BC 1E06  0413 	BTFSS 0x06,RB
+00BD 28CB  0414 	GOTO  m022
+           0415 			;		wait();
+00BE 2098  0416 	CALL  wait
+           0417 			;		wait();
+00BF 2098  0418 	CALL  wait
+           0419 			;		if(RB){
+00C0 1E06  0420 	BTFSS 0x06,RB
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 8
+
+ADDR CODE  LINE SOURCE
+
+00C1 28CB  0421 	GOTO  m022
+           0422 			;			TRISB=0b11111100;
+00C2 30FC  0423 	MOVLW .252
+00C3 1683  0424 	BSF   0x03,RP0
+00C4 0086  0425 	MOVWF TRISB
+           0426 			;			while(1){
+           0427 			;				voltage=adc(0x91);
+00C5 3091  0428 m021	MOVLW .145
+00C6 207C  0429 	CALL  adc
+00C7 0098  0430 	MOVWF voltage
+           0431 			;				display();
+00C8 202D  0432 	CALL  display
+           0433 			;				wait();
+00C9 2098  0434 	CALL  wait
+           0435 			;			}
+00CA 28C5  0436 	GOTO  m021
+           0437 			;		}
+           0438 			;	}
+           0439 			;	if(RC){
+00CB 1283  0440 m022	BCF   0x03,RP0
+00CC 1D06  0441 	BTFSS 0x06,RC
+00CD 28DB  0442 	GOTO  m024
+           0443 			;		wait();
+00CE 2098  0444 	CALL  wait
+           0445 			;		wait();
+00CF 2098  0446 	CALL  wait
+           0447 			;		if(RC){
+00D0 1D06  0448 	BTFSS 0x06,RC
+00D1 28DB  0449 	GOTO  m024
+           0450 			;			TRISB=0b11111100;
+00D2 30FC  0451 	MOVLW .252
+00D3 1683  0452 	BSF   0x03,RP0
+00D4 0086  0453 	MOVWF TRISB
+           0454 			;			while(1){
+           0455 			;				voltage=adc(0x99);
+00D5 3099  0456 m023	MOVLW .153
+00D6 207C  0457 	CALL  adc
+00D7 0098  0458 	MOVWF voltage
+           0459 			;				display();
+00D8 202D  0460 	CALL  display
+           0461 			;				wait();
+00D9 2098  0462 	CALL  wait
+           0463 			;			}
+00DA 28D5  0464 	GOTO  m023
+           0465 			;		}
+           0466 			;	}
+           0467 			;	TRISB=0;
+00DB 1683  0468 m024	BSF   0x03,RP0
+00DC 0186  0469 	CLRF  TRISB
+           0470 			;//	voltage=0;
+           0471 			;//	display();
+           0472 			;//	for(i=0;i<200;i++)wait();
+           0473 			;	Atime=0;
+00DD 0199  0474 	CLRF  Atime
+           0475 			;	Btime=0;
+00DE 019A  0476 	CLRF  Btime
+           0477 			;	Ctime=0;
+00DF 019B  0478 	CLRF  Ctime
+           0479 			;	RA=0;
+00E0 1283  0480 	BCF   0x03,RP0
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 9
+
+ADDR CODE  LINE SOURCE
+
+00E1 1306  0481 	BCF   0x06,RA
+           0482 			;	RB=0;
+00E2 1206  0483 	BCF   0x06,RB
+           0484 			;	RC=0;
+00E3 1106  0485 	BCF   0x06,RC
+           0486 			;	GA=1;
+00E4 1786  0487 	BSF   0x06,GA
+           0488 			;	GB=1;
+00E5 1686  0489 	BSF   0x06,GB
+           0490 			;	GC=1;
+00E6 1586  0491 	BSF   0x06,GC
+           0492 			;	pra=0;
+00E7 109C  0493 	BCF   0x1C,pra
+           0494 			;	prb=0;
+00E8 111C  0495 	BCF   0x1C,prb
+           0496 			;	prc=0;
+00E9 119C  0497 	BCF   0x1C,prc
+           0498 			;	while(1){
+           0499 			;		voltage=adc(0x81);
+00EA 3081  0500 m025	MOVLW .129
+00EB 207C  0501 	CALL  adc
+00EC 0098  0502 	MOVWF voltage
+           0503 			;		tmp=voltage;
+00ED 0818  0504 	MOVF  voltage,W
+00EE 008F  0505 	MOVWF tmp
+00EF 0190  0506 	CLRF  tmp+1
+           0507 			;		tmp*=2;
+00F0 1003  0508 	BCF   0x03,Carry
+00F1 0D8F  0509 	RLF   tmp,1
+00F2 0D90  0510 	RLF   tmp+1,1
+           0511 			;		voltage=tmp/5;
+00F3 080F  0512 	MOVF  tmp,W
+00F4 0092  0513 	MOVWF C12tmp
+00F5 0810  0514 	MOVF  tmp+1,W
+00F6 0093  0515 	MOVWF C12tmp+1
+00F7 0194  0516 	CLRF  C13rem
+00F8 3010  0517 	MOVLW .16
+00F9 0091  0518 	MOVWF C11cnt
+00FA 0D92  0519 m026	RLF   C12tmp,1
+00FB 0D93  0520 	RLF   C12tmp+1,1
+00FC 0D94  0521 	RLF   C13rem,1
+00FD 1803  0522 	BTFSC 0x03,Carry
+00FE 2903  0523 	GOTO  m027
+00FF 3005  0524 	MOVLW .5
+0100 0214  0525 	SUBWF C13rem,W
+0101 1C03  0526 	BTFSS 0x03,Carry
+0102 2906  0527 	GOTO  m028
+0103 3005  0528 m027	MOVLW .5
+0104 0294  0529 	SUBWF C13rem,1
+0105 1403  0530 	BSF   0x03,Carry
+0106 0D98  0531 m028	RLF   voltage,1
+0107 0B91  0532 	DECFSZ C11cnt,1
+0108 28FA  0533 	GOTO  m026
+           0534 			;		display();
+0109 202D  0535 	CALL  display
+           0536 			;		if(!pra){
+010A 189C  0537 	BTFSC 0x1C,pra
+010B 292E  0538 	GOTO  m033
+           0539 			;		i=adc(0x89);
+010C 3089  0540 	MOVLW .137
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 10
+
+ADDR CODE  LINE SOURCE
+
+010D 207C  0541 	CALL  adc
+010E 008E  0542 	MOVWF i_4
+           0543 			;		if(i>MAX){
+010F 30FB  0544 	MOVLW .251
+0110 020E  0545 	SUBWF i_4,W
+0111 1C03  0546 	BTFSS 0x03,Carry
+0112 291E  0547 	GOTO  m030
+           0548 			;			if(Atime>settime){
+0113 3065  0549 	MOVLW .101
+0114 0219  0550 	SUBWF Atime,W
+0115 1C03  0551 	BTFSS 0x03,Carry
+0116 291C  0552 	GOTO  m029
+           0553 			;				RA=1;GA=0;
+0117 1283  0554 	BCF   0x03,RP0
+0118 1706  0555 	BSF   0x06,RA
+0119 1386  0556 	BCF   0x06,GA
+           0557 			;				pra=1;
+011A 149C  0558 	BSF   0x1C,pra
+           0559 			;			}
+           0560 			;			else Atime++;
+011B 292E  0561 	GOTO  m033
+011C 0A99  0562 m029	INCF  Atime,1
+           0563 			;		}
+           0564 			;		else{
+011D 292E  0565 	GOTO  m033
+           0566 			;			if(i<MIN){
+011E 30BE  0567 m030	MOVLW .190
+011F 020E  0568 	SUBWF i_4,W
+0120 1803  0569 	BTFSC 0x03,Carry
+0121 292D  0570 	GOTO  m032
+           0571 			;				if(Atime>settime){
+0122 3065  0572 	MOVLW .101
+0123 0219  0573 	SUBWF Atime,W
+0124 1C03  0574 	BTFSS 0x03,Carry
+0125 292B  0575 	GOTO  m031
+           0576 			;					RA=1;GA=1;
+0126 1283  0577 	BCF   0x03,RP0
+0127 1706  0578 	BSF   0x06,RA
+0128 1786  0579 	BSF   0x06,GA
+           0580 			;					pra=1;
+0129 149C  0581 	BSF   0x1C,pra
+           0582 			;				}
+           0583 			;				else Atime++;
+012A 292E  0584 	GOTO  m033
+012B 0A99  0585 m031	INCF  Atime,1
+           0586 			;			}
+           0587 			;			else Atime=0;
+012C 292E  0588 	GOTO  m033
+012D 0199  0589 m032	CLRF  Atime
+           0590 			;		}
+           0591 			;		}
+           0592 			;		if(!prb){
+012E 191C  0593 m033	BTFSC 0x1C,prb
+012F 2952  0594 	GOTO  m038
+           0595 			;		i=adc(0x91);
+0130 3091  0596 	MOVLW .145
+0131 207C  0597 	CALL  adc
+0132 008E  0598 	MOVWF i_4
+           0599 			;		if(i>MAX){
+0133 30FB  0600 	MOVLW .251
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 11
+
+ADDR CODE  LINE SOURCE
+
+0134 020E  0601 	SUBWF i_4,W
+0135 1C03  0602 	BTFSS 0x03,Carry
+0136 2942  0603 	GOTO  m035
+           0604 			;			if(Btime>settime){
+0137 3065  0605 	MOVLW .101
+0138 021A  0606 	SUBWF Btime,W
+0139 1C03  0607 	BTFSS 0x03,Carry
+013A 2940  0608 	GOTO  m034
+           0609 			;				RB=1;GB=0;
+013B 1283  0610 	BCF   0x03,RP0
+013C 1606  0611 	BSF   0x06,RB
+013D 1286  0612 	BCF   0x06,GB
+           0613 			;				prb=1;
+013E 151C  0614 	BSF   0x1C,prb
+           0615 			;			}
+           0616 			;			else Btime++;
+013F 2952  0617 	GOTO  m038
+0140 0A9A  0618 m034	INCF  Btime,1
+           0619 			;		}
+           0620 			;		else{
+0141 2952  0621 	GOTO  m038
+           0622 			;			if(i<MIN){
+0142 30BE  0623 m035	MOVLW .190
+0143 020E  0624 	SUBWF i_4,W
+0144 1803  0625 	BTFSC 0x03,Carry
+0145 2951  0626 	GOTO  m037
+           0627 			;				if(Btime>settime){
+0146 3065  0628 	MOVLW .101
+0147 021A  0629 	SUBWF Btime,W
+0148 1C03  0630 	BTFSS 0x03,Carry
+0149 294F  0631 	GOTO  m036
+           0632 			;					RB=1;GB=1;
+014A 1283  0633 	BCF   0x03,RP0
+014B 1606  0634 	BSF   0x06,RB
+014C 1686  0635 	BSF   0x06,GB
+           0636 			;					prb=1;
+014D 151C  0637 	BSF   0x1C,prb
+           0638 			;				}
+           0639 			;				else Btime++;
+014E 2952  0640 	GOTO  m038
+014F 0A9A  0641 m036	INCF  Btime,1
+           0642 			;			}
+           0643 			;			else Btime=0;
+0150 2952  0644 	GOTO  m038
+0151 019A  0645 m037	CLRF  Btime
+           0646 			;		}
+           0647 			;		}
+           0648 			;		if(!prc){
+0152 199C  0649 m038	BTFSC 0x1C,prc
+0153 2976  0650 	GOTO  m043
+           0651 			;		i=adc(0x99);
+0154 3099  0652 	MOVLW .153
+0155 207C  0653 	CALL  adc
+0156 008E  0654 	MOVWF i_4
+           0655 			;		if(i>MAX){
+0157 30FB  0656 	MOVLW .251
+0158 020E  0657 	SUBWF i_4,W
+0159 1C03  0658 	BTFSS 0x03,Carry
+015A 2966  0659 	GOTO  m040
+           0660 			;			if(Ctime>settime){
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 12
+
+ADDR CODE  LINE SOURCE
+
+015B 3065  0661 	MOVLW .101
+015C 021B  0662 	SUBWF Ctime,W
+015D 1C03  0663 	BTFSS 0x03,Carry
+015E 2964  0664 	GOTO  m039
+           0665 			;				RC=1;GC=0;
+015F 1283  0666 	BCF   0x03,RP0
+0160 1506  0667 	BSF   0x06,RC
+0161 1186  0668 	BCF   0x06,GC
+           0669 			;				prc=1;
+0162 159C  0670 	BSF   0x1C,prc
+           0671 			;			}
+           0672 			;			else Ctime++;
+0163 2976  0673 	GOTO  m043
+0164 0A9B  0674 m039	INCF  Ctime,1
+           0675 			;		}
+           0676 			;		else{
+0165 2976  0677 	GOTO  m043
+           0678 			;			if(i<MIN){
+0166 30BE  0679 m040	MOVLW .190
+0167 020E  0680 	SUBWF i_4,W
+0168 1803  0681 	BTFSC 0x03,Carry
+0169 2975  0682 	GOTO  m042
+           0683 			;				if(Ctime>settime){
+016A 3065  0684 	MOVLW .101
+016B 021B  0685 	SUBWF Ctime,W
+016C 1C03  0686 	BTFSS 0x03,Carry
+016D 2973  0687 	GOTO  m041
+           0688 			;					RC=1;GC=1;
+016E 1283  0689 	BCF   0x03,RP0
+016F 1506  0690 	BSF   0x06,RC
+0170 1586  0691 	BSF   0x06,GC
+           0692 			;					prc=1;
+0171 159C  0693 	BSF   0x1C,prc
+           0694 			;				}
+           0695 			;				else Ctime++;
+0172 2976  0696 	GOTO  m043
+0173 0A9B  0697 m041	INCF  Ctime,1
+           0698 			;			}
+           0699 			;			else Ctime=0;
+0174 2976  0700 	GOTO  m043
+0175 019B  0701 m042	CLRF  Ctime
+           0702 			;		}
+           0703 			;		}
+           0704 			;		if(protect){
+0176 1283  0705 m043	BCF   0x03,RP0
+0177 1E05  0706 	BTFSS 0x05,protect
+0178 2980  0707 	GOTO  m044
+           0708 			;			wait();
+0179 2098  0709 	CALL  wait
+           0710 			;			wait();
+017A 2098  0711 	CALL  wait
+           0712 			;			if(protect){
+017B 1E05  0713 	BTFSS 0x05,protect
+017C 2980  0714 	GOTO  m044
+           0715 			;				pra=1;
+017D 149C  0716 	BSF   0x1C,pra
+           0717 			;				prb=1;
+017E 151C  0718 	BSF   0x1C,prb
+           0719 			;				prc=1;
+017F 159C  0720 	BSF   0x1C,prc
+CC5X Version 3.0G,   File: D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 17. Nov 2000   1:09   Page 13
+
+ADDR CODE  LINE SOURCE
+
+           0721 			;			}
+           0722 			;		}
+           0723 			;		wait();
+0180 2098  0724 m044	CALL  wait
+           0725 			;	}
+0181 28EA  0726 	GOTO  m025
+           0727 			;}
+           0728 
+     0000  0729 	END

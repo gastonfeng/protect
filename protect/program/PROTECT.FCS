@@ -1,0 +1,79 @@
+
+CC5X Version 3.0G, Copyright (c) B. Knudsen Data.
+* FUNCTION CALL STRUCTURE
+
+F: int_server             :#0 
+
+F: table                  :#3 
+
+F: outchar                :#3 
+
+F: display                :#4 
+    table                 : #3 
+    table                 : #3 
+    table                 : #3 
+    outchar               : #3 
+    outchar               : #3 
+    outchar               : #3 
+
+F: adc                    :#7 
+
+F: wait                   :#12
+
+F: main                   :#0 
+    wait                  : #12
+    wait                  : #12
+    adc                   : #7 
+    display               : #4 
+    wait                  : #12
+    wait                  : #12
+    wait                  : #12
+    adc                   : #7 
+    display               : #4 
+    wait                  : #12
+    wait                  : #12
+    wait                  : #12
+    adc                   : #7 
+    display               : #4 
+    wait                  : #12
+    adc                   : #7 
+    display               : #4 
+    adc                   : #7 
+    adc                   : #7 
+    adc                   : #7 
+    wait                  : #12
+    wait                  : #12
+    wait                  : #12
+
+
+ L0  main
+ L1    wait
+ L1    wait
+ L1    adc
+ L1    display
+ L2      table
+ L2      table
+ L2      table
+ L2      outchar
+ L2      outchar
+ L1      outchar [T-GOTO]
+ L1    wait
+ L1    wait
+ L1    wait
+ L1    adc
+ L1    display ..
+ L1    wait
+ L1    wait
+ L1    wait
+ L1    adc
+ L1    display ..
+ L1    wait
+ L1    adc
+ L1    display ..
+ L1    adc
+ L1    adc
+ L1    adc
+ L1    wait
+ L1    wait
+ L1    wait
+

@@ -1,0 +1,19 @@
+CC5X Version 3.0G, Copyright (c) B. Knudsen Data, Norway 1992-2000
+ --> FREE edition, 8-16 bit int, 1k code, reduced optim.
+D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C:
+ 17. Nov 2000   1:09
+Warning D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 49: Unrecognized pragma directive 'computedgoto'
+Warning D:\PRODUCT\PROTECT\PROGRAM\PROTECT.C 61: Unrecognized pragma directive 'computedgoto'
+ Chip = 16C711
+ RAM: 00h : -------- ----==== ======== ....4***
+ RAM: 20h : ******** ******** ******** ********
+ RAM: 40h : ******** ********
+ File 'PROTECT.fcs'
+ Optimizing - removed 4 instructions (-1 %)
+ File 'PROTECT.var'
+ File 'PROTECT.asm'
+ File 'PROTECT.lst'
+ File 'PROTECT.cod'
+ File 'PROTECT.occ'
+ File 'PROTECT.hex'
+Total of 383 instructions (37 %)
